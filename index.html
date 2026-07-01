@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calculadora de Costeo — Costea & Crece</title>
+<meta name="description" content="Herramienta gratuita de Costea & Crece by Carlos Castro. Calcula ingredientes y tiempo para saber exactamente cuánto cobrar por tus productos de repostería."/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow+Semi+Condensed:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,600&display=swap');
+
+  :root {
+    --carbon:   #1A1A1A;
+    --carbon2:  #2A2A2A;
+    --verde:    #2D4A2B;
+    --verde-m:  #4A6741;
+    --verde-l:  #C8D4B8;
+    --dorado:   #B8A06A;
+    --dorado-l: #F5EDD8;
+    --dorado-m: #E8D9B0;
+    --blanco:   #FFFFFF;
+    --gris:     #F7F7F7;
+    --gris-b:   #EBEBEB;
+    --muted:    #6B6B6B;
+    --border:   #DCDCDC;
+    --text:     #1A1A1A;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--gris);
+    font-family: 'Barlow Semi Condensed', 'Segoe UI', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* ── HEADER ── */
+  .header { background: var(--carbon); position: relative; }
+  .header-accent-top { width: 100%; height: 4px; background: linear-gradient(90deg, var(--dorado), var(--verde)); }
+  .header-inner {
+    max-width: 840px; margin: 0 auto;
+    padding: 28px 24px 24px;
+    display: flex; align-items: center; gap: 22px;
+  }
+  .header-logo { width: 80px; height: 80px; border-radius: 12px; flex-shrink: 0; }
+  .header-text { flex: 1; }
+  .header-eyebrow {
+    font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--dorado); margin-bottom: 5px; font-weight: 600;
+  }
+  .header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(22px, 5vw, 34px); font-weight: 900;
+    color: var(--blanco); line-height: 1.05; letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--dorado); }
+  .header-sub { font-size: 13px; color: var(--verde-l); margin-top: 5px; }
+  .header-accent-bottom { width: 100%; height: 2px; background: linear-gradient(90deg, var(--verde), var(--dorado)); }
+  .byline {
+    background: var(--carbon2); text-align: center;
+    padding: 8px 16px; font-size: 11px; color: var(--muted); letter-spacing: 0.5px;
+  }
+  .byline em { color: var(--dorado); font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 13px; }
+  @media(max-width:480px){
+    .header-inner { flex-direction: column; text-align: center; gap: 14px; }
+    .header-logo { width: 64px; height: 64px; }
+  }
+
+  /* ── NOTA NIVEL 1 ── */
+  .nivel-banner {
+    background: var(--carbon2); border-bottom: 2px solid var(--dorado);
+    padding: 10px 24px; text-align: center;
+  }
+  .nivel-pill {
+    display: inline-block; background: var(--dorado); color: var(--carbon);
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 3px 12px; border-radius: 100px;
+    margin-right: 10px;
+  }
+  .nivel-banner span { font-size: 12px; color: var(--verde-l); }
+
+  /* ── BODY ── */
+  .body { max-width: 840px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--blanco); border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 16px rgba(0,0,0,.06);
+    margin-top: 20px; overflow: hidden;
+  }
+
+  /* ── INFO PRODUCTO ── */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 22px 22px 14px; }
+  @media(max-width:480px){ .info-grid { grid-template-columns: 1fr; } }
+  .info-note { padding: 0 22px 16px; font-size: 11px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--gris-b); margin-top: 4px; padding-top: 10px; }
+
+  label.field-label {
+    display: block; font-size: 9px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  input.field {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    color: var(--text); background: var(--gris); outline: none; transition: border-color .2s;
+  }
+  input.field:focus { border-color: var(--dorado); background: var(--blanco); }
+
+  /* ── FORMULA BANNER ── */
+  .formula-banner {
+    background: var(--carbon); border-radius: 14px;
+    padding: 20px 24px; margin-top: 20px; text-align: center;
+  }
+  .formula-eye { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--dorado); margin-bottom: 8px; font-weight: 700; }
+  .formula-txt {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(16px, 4vw, 22px); font-weight: 900; color: var(--blanco);
+    letter-spacing: 0.5px; line-height: 1.2;
+  }
+  .formula-txt span { color: var(--dorado); }
+  .formula-sub { font-size: 11px; color: var(--verde-l); margin-top: 8px; }
+
+  /* ── SECTION HEADER ── */
+  .section-hdr { display: flex; align-items: center; gap: 10px; margin: 22px 0 12px; }
+  .section-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dorado); flex-shrink: 0; }
+  .section-hdr h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--carbon); }
+
+  /* ── TABLA INGREDIENTES ── */
+  .tbl-head {
+    display: grid;
+    grid-template-columns: 2fr 1.1fr 1.1fr 1.1fr 90px 32px;
+    background: var(--carbon); padding: 10px 16px; gap: 8px;
+  }
+  @media(max-width:600px){
+    .tbl-head { grid-template-columns: 2fr 1fr 1fr 72px 28px; }
+    .col-emp { display: none; }
+  }
+  .tbl-th { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dorado); }
+  .tbl-th.r { text-align: right; }
+
+  .tbl-row {
+    display: grid;
+    grid-template-columns: 2fr 1.1fr 1.1fr 1.1fr 90px 32px;
+    padding: 8px 16px; gap: 8px; align-items: center;
+    border-bottom: 1px solid var(--gris-b); transition: background .15s;
+  }
+  .tbl-row:nth-child(even) { background: var(--gris); }
+  @media(max-width:600px){
+    .tbl-row { grid-template-columns: 2fr 1fr 1fr 72px 28px; }
+    .tbl-row .col-emp { display: none; }
+  }
+  .ci {
+    border: none; background: transparent; font-size: 13px;
+    font-family: 'Barlow Semi Condensed', sans-serif; color: var(--text);
+    width: 100%; outline: none; border-bottom: 1px solid var(--border); padding: 3px 0;
+    transition: border-color .2s;
+  }
+  .ci::placeholder { color: #BBBBBB; font-size: 12px; }
+  .ci:focus { border-bottom-color: var(--dorado); }
+  .cr { font-size: 13px; font-weight: 700; color: var(--verde); text-align: right; }
+  .rb {
+    background: none; border: none; cursor: pointer; color: var(--border);
+    font-size: 18px; opacity: .6; transition: all .15s; padding: 0; line-height: 1;
+  }
+  .rb:hover { opacity: 1; color: #C0392B; }
+
+  .sub-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: var(--dorado-l);
+  }
+  .sub-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--carbon); }
+  .sub-val { font-size: 15px; font-weight: 700; color: var(--carbon); }
+
+  .add-btn {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    background: none; border: none; border-top: 1.5px dashed var(--dorado);
+    padding: 11px 16px; color: var(--dorado); font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+    font-family: 'Barlow Semi Condensed', sans-serif; transition: background .15s;
+  }
+  .add-btn:hover { background: var(--dorado-l); }
+
+  /* ── MI TIEMPO ── */
+  .tiempo-card {
+    background: var(--verde); border-radius: 14px;
+    padding: 22px 24px; margin-top: 20px;
+    box-shadow: 0 2px 16px rgba(45,74,43,.15);
+  }
+  .tiempo-card .hint { font-size: 12px; color: var(--verde-l); margin-bottom: 16px; line-height: 1.5; }
+  .tiempo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media(max-width:480px){ .tiempo-grid { grid-template-columns: 1fr 1fr; } }
+  .t-lbl { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--verde-l); margin-bottom: 6px; display: block; }
+  .t-field {
+    width: 100%; border: 1.5px solid rgba(184,160,106,.3); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; font-family: 'Barlow Semi Condensed', sans-serif;
+    color: #fff; background: rgba(255,255,255,.1); outline: none; transition: border-color .2s;
+  }
+  .t-field:focus { border-color: var(--dorado); }
+  .t-result {
+    background: rgba(255,255,255,.1); border-radius: 10px; padding: 14px 16px;
+    text-align: center; display: flex; flex-direction: column; justify-content: center;
+    border: 1px solid rgba(184,160,106,.3);
+  }
+  .t-result-lbl { font-size: 9px; color: var(--verde-l); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .t-result-val { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--dorado); }
+
+  /* ── SALARIO REF ── */
+  .salario-ref {
+    background: rgba(255,255,255,.07); border-radius: 10px;
+    padding: 12px 16px; margin-top: 14px;
+    border-left: 3px solid var(--dorado);
+    font-size: 11px; color: var(--verde-l); line-height: 1.6;
+  }
+  .salario-ref strong { color: var(--dorado); }
+
+  /* ── RESUMEN ── */
+  .resumen {
+    background: var(--carbon); border-radius: 20px;
+    padding: 28px 24px 24px; margin-top: 20px;
+    box-shadow: 0 4px 32px rgba(0,0,0,.18);
+  }
+  .res-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--dorado);
+    letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-bottom: 6px; font-weight: 700;
+  }
+  .res-prod { text-align: center; font-size: 13px; color: var(--verde-l); margin-bottom: 18px; min-height: 18px; font-style: italic; }
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .res-item { background: rgba(255,255,255,.06); border-radius: 10px; padding: 12px 14px; border: 1px solid rgba(255,255,255,.06); }
+  .res-item.total { background: rgba(255,255,255,.12); }
+  .res-lbl { font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .res-val { font-size: 16px; font-weight: 700; color: var(--blanco); }
+  .res-item.total .res-val { font-size: 20px; color: var(--dorado); }
+
+  /* ── MARGEN ── */
+  .margen-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .margen-lbl { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .margen-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .mb {
+    background: rgba(255,255,255,.08); border: none; border-radius: 8px;
+    padding: 7px 16px; font-size: 14px; font-weight: 700; color: var(--blanco);
+    cursor: pointer; font-family: 'Barlow Condensed', sans-serif; transition: all .15s;
+  }
+  .mb.act { background: var(--dorado); color: var(--carbon); }
+  .mb:hover:not(.act) { background: rgba(255,255,255,.14); }
+  .mb-note { font-size: 9px; color: var(--muted); text-align: center; margin-bottom: 12px; letter-spacing: 0.5px; }
+
+  /* ── PRECIO ── */
+  .precio-box { background: var(--dorado); border-radius: 14px; padding: 20px; text-align: center; }
+  .precio-lbl { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--carbon); margin-bottom: 6px; }
+  .precio-val { font-family: 'Barlow Condensed', sans-serif; font-size: 44px; font-weight: 900; color: var(--carbon); line-height: 1; }
+  .precio-sub { font-size: 12px; color: var(--carbon2); margin-top: 6px; opacity: .85; }
+  .badge { display: inline-block; border-radius: 8px; padding: 2px 10px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+  .ok  { background: #D4EDDA; color: #155724; }
+  .bad { background: #F8D7DA; color: #721c24; }
+
+  /* ── ESCALERA ── */
+  .escalera { margin-top: 20px; }
+  .escalera-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--carbon); margin-bottom: 12px; }
+  .nivel-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px; margin-bottom: 8px;
+    border: 1px solid var(--border); background: var(--blanco);
+  }
+  .nivel-item.active { background: var(--carbon); border-color: var(--dorado); }
+  .nivel-tag {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; padding: 4px 10px; border-radius: 6px;
+    background: var(--gris-b); color: var(--muted); flex-shrink: 0;
+  }
+  .nivel-item.active .nivel-tag { background: var(--dorado); color: var(--carbon); }
+  .nivel-info { flex: 1; }
+  .nivel-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .nivel-item.active .nivel-name { color: var(--blanco); }
+  .nivel-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .nivel-item.active .nivel-desc { color: var(--verde-l); }
+  .nivel-badge { font-size: 10px; font-weight: 700; color: var(--dorado); flex-shrink: 0; }
+
+  /* ── RESET ── */
+  .reset-btn {
+    display: block; margin: 18px auto 0; background: none;
+    border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 8px 28px;
+    font-size: 11px; color: var(--muted); cursor: pointer;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    letter-spacing: 1.5px; text-transform: uppercase; transition: all .15s;
+  }
+  .reset-btn:hover { border-color: var(--dorado); color: var(--dorado); }
+
+  /* ── FOOTER ── */
+  .footer { background: var(--carbon2); margin-top: 48px; padding: 24px; text-align: center; border-top: 2px solid var(--dorado); }
+  .footer p { font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .footer strong { color: var(--dorado); }
+  .footer a { color: var(--dorado); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-accent-top"></div>
+  <div class="header-inner">
+    <img class="header-logo" src="data:image/png;base64,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" alt="Costea & Crece Logo"/>
+    <div class="header-text">
+      <p class="header-eyebrow">Herramienta gratuita · Costea &amp; Crece</p>
+      <h1>CALCULADORA<br><span>DE COSTEO</span></h1>
+      <p class="header-sub">Conoce tu costo real y cobra lo que mereces · Pesos colombianos (COP)</p>
+    </div>
+  </div>
+  <div class="header-accent-bottom"></div>
+  <div class="byline">
+    Herramienta del ebook <em>Costea &amp; Crece · by Carlos Castro</em> · MBA en Finanzas · Asesor financiero para emprendedores · 📱 @costeaycrece
+  </div>
+</div>
+
+<!-- NIVEL BANNER -->
+<div class="nivel-banner">
+  <span class="nivel-pill">Nivel 1</span>
+  <span>Fórmula para principiantes: (Ingredientes + Tu tiempo) × margen</span>
+</div>
+
+<div class="body">
+
+  <!-- FÓRMULA -->
+  <div class="formula-banner">
+    <p class="formula-eye">Fórmula Nivel 1 — Para principiantes</p>
+    <p class="formula-txt">PRECIO = <span>(Ingredientes + Tu tiempo)</span> × 3</p>
+    <p class="formula-sub">Solo 3 variables · Sin cálculos complicados · El margen cubre gas, empaques, plataformas y más</p>
+  </div>
+
+  <!-- INFO PRODUCTO -->
+  <div class="card">
+    <div class="info-grid">
+      <div>
+        <label class="field-label" for="producto">Nombre del producto</label>
+        <input class="field" id="producto" placeholder="Ej: Torta húmeda de chocolate" oninput="recalc()">
+      </div>
+      <div>
+        <label class="field-label" for="porciones">Porciones / Tamaño *</label>
+        <input class="field" id="porciones" placeholder="Ej: 12 a 16 porciones (tú decides)" oninput="recalc()">
+      </div>
+    </div>
+    <p class="info-note">* Las porciones son relativas — dependen del tamaño que tú le asignes a cada trozo. Todos los valores son en <strong>pesos colombianos (COP)</strong>.</p>
+  </div>
+
+  <!-- INGREDIENTES -->
+  <div class="section-hdr"><div class="section-dot"></div><h2>Ingredientes</h2></div>
+  <div class="card">
+    <div class="tbl-head">
+      <span class="tbl-th">Ingrediente</span>
+      <span class="tbl-th">Precio empaque</span>
+      <span class="tbl-th col-emp">Cant. empaque</span>
+      <span class="tbl-th">Cant. usada</span>
+      <span class="tbl-th r">Costo</span>
+      <span></span>
+    </div>
+    <div id="ing-rows"></div>
+    <div class="sub-row">
+      <span class="sub-lbl">Subtotal ingredientes (COP)</span>
+      <span class="sub-val" id="sub-ing">—</span>
+    </div>
+    <button class="add-btn" onclick="addIng()">+ Agregar ingrediente</button>
+  </div>
+
+  <!-- MI TIEMPO -->
+  <div class="section-hdr"><div class="section-dot"></div><h2>Mi tiempo — el ingrediente más valioso</h2></div>
+  <div class="tiempo-card">
+    <p class="hint">Tu tiempo tiene un precio. Ingrésalo aquí — es parte fundamental del costo de tu producto.</p>
+    <div class="tiempo-grid">
+      <div>
+        <label class="t-lbl" for="horas">Horas de trabajo</label>
+        <input class="t-field" id="horas" placeholder="Ej: 4" oninput="recalc()">
+      </div>
+      <div>
+        <label class="t-lbl" for="vhora">Valor por hora (COP)</label>
+        <input class="t-field" id="vhora" placeholder="Ej: 18.750" oninput="recalc()">
+      </div>
+      <div class="t-result">
+        <p class="t-result-lbl">Costo de mi tiempo</p>
+        <p class="t-result-val" id="costo-tiempo">—</p>
+      </div>
+    </div>
+    <div class="salario-ref">
+      <strong>Referencia salario mínimo Colombia 2025:</strong> .000.000 / 168 horas = <strong>1.900/hora</strong> como piso mínimo.<br>
+      Inicio (menos de 1 año): <strong>2.000–5.000/h</strong> · Intermedio: <strong>5.000–0.000/h</strong> · Avanzado: <strong>0.000–0.000/h</strong>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen">
+    <p class="res-title">Resumen de costeo</p>
+    <p class="res-prod" id="res-prod"></p>
+    <div class="res-grid">
+      <div class="res-item">
+        <p class="res-lbl">Ingredientes (COP)</p>
+        <p class="res-val" id="r-ing">—</p>
+      </div>
+      <div class="res-item">
+        <p class="res-lbl">Mi tiempo (COP)</p>
+        <p class="res-val" id="r-tiempo">—</p>
+      </div>
+      <div class="res-item total" style="grid-column:1/-1;">
+        <p class="res-lbl">Base del cálculo (Ingredientes + Tiempo)</p>
+        <p class="res-val" id="r-base">—</p>
+      </div>
+    </div>
+
+    <div class="margen-row">
+      <span class="margen-lbl">Margen:</span>
+      <div class="margen-btns">
+        <button class="mb" onclick="setM(2)"   id="m2">×2</button>
+        <button class="mb" onclick="setM(2.5)" id="m2.5">×2.5</button>
+        <button class="mb act" onclick="setM(3)" id="m3">×3</button>
+        <button class="mb" onclick="setM(3.5)" id="m3.5">×3.5</button>
+      </div>
+    </div>
+    <p class="mb-note">×2.5 brownies/galletas &nbsp;·&nbsp; ×3 tortas básicas &nbsp;·&nbsp; ×3.5 tortas decoradas</p>
+
+    <div class="precio-box">
+      <p class="precio-lbl">Precio de venta sugerido (pesos colombianos)</p>
+      <p class="precio-val" id="precio">—</p>
+      <p class="precio-sub" id="precio-sub"></p>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">↺ Limpiar todo</button>
+  </div>
+
+  <!-- ESCALERA DE PRODUCTOS -->
+  <div class="escalera" style="margin-top:28px;">
+    <p class="escalera-title">Tu camino con Costea &amp; Crece</p>
+    <div class="nivel-item active">
+      <span class="nivel-tag">Nivel 1</span>
+      <div class="nivel-info">
+        <p class="nivel-name">Ponle precio a tu amor por la repostería</p>
+        <p class="nivel-desc">Costeo básico para reposteras caseras · Fórmula simplificada</p>
+      </div>
+      <span class="nivel-badge">← Estás aquí</span>
+    </div>
+    <div class="nivel-item">
+      <span class="nivel-tag">Nivel 2</span>
+      <div class="nivel-info">
+        <p class="nivel-name">De la cocina al negocio</p>
+        <p class="nivel-desc">Flujo de caja, punto de equilibrio, costos fijos · Próximamente</p>
+      </div>
+    </div>
+    <div class="nivel-item">
+      <span class="nivel-tag">Nivel 3</span>
+      <div class="nivel-info">
+        <p class="nivel-name">Abre tu local sin arruinarte</p>
+        <p class="nivel-desc">Empleados, arriendo, servicios, nómina · Próximamente</p>
+      </div>
+    </div>
+    <div class="nivel-item">
+      <span class="nivel-tag">Nivel 4</span>
+      <div class="nivel-info">
+        <p class="nivel-name">Asesoría 1 a 1 con Carlos Castro</p>
+        <p class="nivel-desc">Plan financiero personalizado para tu negocio específico</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>
+    <strong>Costea &amp; Crece · by Carlos Castro</strong><br>
+    MBA en Finanzas · Asesor financiero para emprendedores del sector food<br>
+    📱 <a href="https://instagram.com/costeaycrece" target="_blank">@costeaycrece</a>
+    &nbsp;·&nbsp;
+    💌 <a href="mailto:charleskastro@gmail.com">charleskastro@gmail.com</a><br><br>
+    <span style="font-size:10px; color:#444;">Todos los valores en pesos colombianos (COP) · Precios de referencia 2025 · © Costea &amp; Crece · Carlos Castro</span>
+  </p>
+</div>
+
+<script>
+  let margen = 3, ingId = 0;
+  const n   = v => parseFloat(String(v).replace(/[^0-9.]/g,'')) || 0;
+  const fmt = v => v === 0 ? '—' : '$' + Math.round(v).toLocaleString('es-CO');
+
+  function addIng() {
+    const id = ++ingId;
+    const div = document.createElement('div');
+    div.className = 'tbl-row'; div.id = 'ing-' + id;
+    div.innerHTML = `
+      <input class="ci" placeholder="Ej: Harina Haz de Oros" oninput="recalc()">
+      <input class="ci" placeholder="$3.500" oninput="recalc()">
+      <input class="ci col-emp" placeholder="1000 g" oninput="recalc()">
+      <input class="ci" placeholder="375 g" oninput="recalc()">
+      <span class="cr" id="cr-${id}">—</span>
+      <button class="rb" onclick="removeIng(${id})" title="Eliminar">×</button>
+    `;
+    document.getElementById('ing-rows').appendChild(div);
+    recalc();
+  }
+
+  function removeIng(id) {
+    if (document.querySelectorAll('.tbl-row').length <= 1) return;
+    document.getElementById('ing-' + id)?.remove();
+    recalc();
+  }
+
+  function setM(m) {
+    margen = m;
+    document.querySelectorAll('.mb').forEach(b => b.classList.remove('act'));
+    document.getElementById('m' + m)?.classList.add('act');
+    recalc();
+  }
+
+  function recalc() {
+    let totalIng = 0;
+    document.querySelectorAll('.tbl-row').forEach(row => {
+      const inp = row.querySelectorAll('.ci');
+      const precio = n(inp[1]?.value), cantE = n(inp[2]?.value), cantU = n(inp[3]?.value);
+      const costo  = cantE > 0 ? (precio / cantE) * cantU : 0;
+      totalIng += costo;
+      const el = row.querySelector('.cr');
+      if (el) el.textContent = fmt(costo);
+    });
+
+    const horas  = n(document.getElementById('horas')?.value);
+    const vh     = n(document.getElementById('vhora')?.value);
+    const tiempo = horas * vh;
+    const base   = totalIng + tiempo;
+    const precio = base * margen;
+    const gan    = precio - base;
+
+    document.getElementById('sub-ing').textContent    = fmt(totalIng);
+    document.getElementById('costo-tiempo').textContent = fmt(tiempo);
+    document.getElementById('r-ing').textContent      = fmt(totalIng);
+    document.getElementById('r-tiempo').textContent   = fmt(tiempo);
+    document.getElementById('r-base').textContent     = fmt(base);
+    document.getElementById('precio').textContent     = fmt(precio);
+
+    const prod = document.getElementById('producto')?.value;
+    const porc = document.getElementById('porciones')?.value;
+    document.getElementById('res-prod').textContent   = [prod, porc].filter(Boolean).join(' · ');
+
+    const sub = document.getElementById('precio-sub');
+    if (base > 0) {
+      const badge = gan > 0
+        ? `<span class="badge ok">✓ Rentable</span>`
+        : `<span class="badge bad">⚠ Revisa</span>`;
+      sub.innerHTML = `Ganancia estimada: ${fmt(gan)} ${badge}`;
+    } else { sub.innerHTML = ''; }
+  }
+
+  function resetAll() {
+    ['producto','porciones','horas','vhora'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('ing-rows').innerHTML = '';
+    ingId = 0;
+    for (let i = 0; i < 5; i++) addIng();
+    setM(3); recalc();
+  }
+
+  for (let i = 0; i < 5; i++) addIng();
+</script>
+</body>
+</html>
